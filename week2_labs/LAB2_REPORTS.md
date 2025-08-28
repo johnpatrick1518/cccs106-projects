@@ -8,7 +8,7 @@
 ## Git Configuration
 
 ### Repository Setup
-- **GitHub Repository:** [\[Your repository URL\]](https://github.com/johnpatrick1518/cccs106-projects)
+- **GitHub Repository:** [\[Github Repository\]](https://github.com/johnpatrick1518/cccs106-projects)
 - **Local Repository:** ✅ Initialized and connected
 - **Commit History:** [3] 
  - 1st commit Add project structure and README
@@ -69,5 +69,6 @@ I learned about setting up the github and fixing something in the personal_info_
 - [ ] personal_info_gui.py with filled form and generated profile
 
 ## Future Enhancements
+
 
 Proper sizing (h and w) and font color 
