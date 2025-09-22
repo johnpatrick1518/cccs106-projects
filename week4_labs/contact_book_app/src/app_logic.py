@@ -1,7 +1,22 @@
+import re
 import flet as ft
 from database import update_contact_db, delete_contact_db, add_contact_db, get_all_contacts_db
 
+EMAIL_REGEX = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+PHONE_REGEX = re.compile(r"^\+?[\d\s\-\(\)]{11}$")
+
+def is_valid_email(email: str) -> bool:
+    if not email:
+        return False
+    return EMAIL_REGEX.match(email.strip()) is not None
+
+def is_valid_phone(phone: str) -> bool:
+    if not phone:
+        return False
+    return PHONE_REGEX.match(phone.strip()) is not None
+
 def display_contacts(page, contacts_list_view, db_conn, search_term=""):
+    contacts_list_view.controls.clear()
     contacts = get_all_contacts_db(db_conn, search_term)
 
     for contact in contacts:
@@ -33,8 +48,20 @@ def display_contacts(page, contacts_list_view, db_conn, search_term=""):
                                 ],
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             ),
-                            ft.Text(f"Phone: {phone or 'N/A'}"),
-                            ft.Text(f"Email: {email or 'N/A'}"),
+                            ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.PHONE, size=16),
+                                        ft.Text(phone or "N/A"),
+                                    ],
+                                    spacing=5,
+                                ),
+                            ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.EMAIL, size=16),
+                                        ft.Text(email or "N/A"),
+                                    ],
+                                    spacing=5,
+                                ),
                         ],
                         spacing=5,
                     ),
@@ -47,23 +74,41 @@ def display_contacts(page, contacts_list_view, db_conn, search_term=""):
 def add_contact(page, inputs, contacts_list_view, db_conn):
     name_input, phone_input, email_input = inputs
 
-    if not name_input.value.strip():
+    name = (name_input.value or "").strip()
+    phone = (phone_input.value or "").strip()
+    email = (email_input.value or "").strip()
+
+    if not name:
         name_input.error_text = "Name cannot be empty"
         page.update()
         return
     else:
         name_input.error_text = None
 
-    if not phone_input.value.strip() and not email_input.value.strip():
-        phone_input.error_text = "Phone or Email required"
-        email_input.error_text = "Phone or Email required"
+    if not phone and not email:
+        phone_input.error_text = "Provide phone or email"
+        email_input.error_text = "Provide phone or email"
         page.update()
         return
     else:
         phone_input.error_text = None
         email_input.error_text = None
 
-    add_contact_db(db_conn, name_input.value, phone_input.value, email_input.value)
+    if phone and not is_valid_phone(phone):
+        phone_input.error_text = "Invalid phone format"
+        page.update()
+        return
+    else:
+        phone_input.error_text = None
+
+    if email and not is_valid_email(email):
+        email_input.error_text = "Invalid email address"
+        page.update()
+        return
+    else:
+        email_input.error_text = None
+
+    add_contact_db(db_conn, name, phone, email)
 
     for field in inputs:
         field.value = ""
@@ -97,7 +142,41 @@ def open_edit_dialog(page, contact, db_conn, contacts_list_view):
     edit_email = ft.TextField(label="Email", value=email)
 
     def save_and_close(e):
-        update_contact_db(db_conn, contact_id, edit_name.value, edit_phone.value, edit_email.value)
+        new_name = (edit_name.value or "").strip()
+        new_phone = (edit_phone.value or "").strip()
+        new_email = (edit_email.value or "").strip()
+
+        if not new_name:
+            edit_name.error_text = "Name cannot be empty"
+            page.update()
+            return
+        else:
+            edit_name.error_text = None
+
+        if not new_phone and not new_email:
+            edit_phone.error_text = "Provide phone or email"
+            edit_email.error_text = "Provide phone or email"
+            page.update()
+            return
+        else:
+            edit_phone.error_text = None
+            edit_email.error_text = None
+
+        if new_phone and not is_valid_phone(new_phone):
+            edit_phone.error_text = "Invalid phone format"
+            page.update()
+            return
+        else:
+            edit_phone.error_text = None
+
+        if new_email and not is_valid_email(new_email):
+            edit_email.error_text = "Invalid email address"
+            page.update()
+            return
+        else:
+            edit_email.error_text = None
+
+        update_contact_db(db_conn, contact_id, new_name, new_phone, new_email)
         dialog.open = False
         page.update()
         display_contacts(page, contacts_list_view, db_conn)

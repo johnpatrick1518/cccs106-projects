@@ -5,7 +5,11 @@ def init_db():
     conn = sqlite3.connect('contacts.db', check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS contacts (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, phone TEXT, email TEXT)
+        CREATE TABLE IF NOT EXISTS contacts (
+                   id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                   name TEXT NOT NULL, 
+                   phone TEXT, 
+                   email TEXT)
     ''')
     conn.commit()
     return conn
